@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+	<a href="{% url 'dm:searchquery' %}">back</a>
+	<table border='8'>
+		<tr>
+			<th>Review</th>
+			<th>stars</th>
+	 	</tr>
+        {% csrf_token %}
+		{% for query in review_list %}
+			<tr>
+			    <td>{{ query.text }}</td>
+			    <td>{{ query.stars }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+		
+</body>
+</html>

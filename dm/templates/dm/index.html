@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Dining Menu</h1>
+<form action="{% url 'dm:recordmanager' %}" method="post">
+Input your location:  <input type="text" name="myaddr"  value="1124 North 3rd Street, Phoenix, AZ"/> City: <input type="text" name="location"  value="Phoenix" /> State: <input type="text" name="ss"  value="AZ" />
+
+
+<table border='8'>
+		<tr>
+			<th>Delete</th>
+			<th>Dish</th>
+			<th>Favorite</th>
+	 	</tr>
+		{% csrf_token %}
+		
+		{% for mc in menucount %}
+			<tr>
+				<td><input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ forloop.counter }}" /></td>
+				<label for="choice{{ forloop.counter }}">
+				<td><input type="text" name="dish{{ forloop.counter }}"  value="{{ mc.name }}" /></td>
+				<td><input type="text" name="fav{{ forloop.counter }}"  value="{{ mc.fav }}" /></td>
+			</tr>
+		
+		{% endfor %}
+	</table>
+
+
+
+<input type="submit" name = "add" value="Search" />
+<input type="submit" name = "edit" value="Add More" />
+<input type="submit" name = "delete" value="Delete" />
+
+</form>
+		<div id="googleMap" style="width:800px;height:600px;"></div>
+		<div>
+			<label for="current address">Current_adddress</label>
+			<input type="text" id="current_address"/>
+			<button onclick="find_stations()">Locate</button>
+			<button onclick="find_best_station()"> find best station</button>
+		</div>
+		<div>
+			<label for="destination address">Destination_adddress</label>
+			<input type="text" id="destination_address"/>
+			<button onclick="Both_find_stations()">Locate</button>
+		</div>
+</body>
+</html>
+
+

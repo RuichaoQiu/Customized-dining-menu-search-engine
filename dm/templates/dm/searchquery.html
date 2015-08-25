@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+	<a href="{% url 'dm:index' %}">back</a>
+	<form action="{% url 'dm:recordmanager' %}" method="post">
+    	<table border='8'>
+			<tr>
+				<th>Choice</th>
+				<th>Name</th>
+				<th>Ratings</th>
+				<th>Address</th>
+		 	</tr>
+            {% csrf_token %}
+			{% for query in query_list %}
+				<tr>
+					<td><input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ forloop.counter }}" /></td>
+					<label for="choice{{ forloop.counter }}">
+				    <td>{{ query.name }}</td>
+				    <td>{{ query.stars }}</td>
+				    <td>{{ query.full_address }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+		<input type="submit" name = "review" value="Review" />
+		<input type="submit" name = "route" value="Get There" />
+	</form>
+</body>
+</html>

@@ -1,0 +1,282 @@
+
+<html>
+	<head>
+		<title> My first Attempt </title>
+		<script
+			src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCyY6mM5HyT5svJF0B-N7dpIlF1P7zDeyc&sensor=false">
+		</script>
+
+		<script>
+		
+		var distances=[];
+		var geocoder=new google.maps.Geocoder();
+		window.map;
+		var current_lat, current_lng, destination_lat, destination_lng;
+		var smpg="{{vmpg}}";
+		window.mpg;
+		window.mpg = parseFloat(smpg);
+		var mytable;
+		//=======================
+		// get info from database 
+		// 
+
+		window.newstat = [];
+		window.stations=[];
+		window.stlat = "{{rest.latitude }}";
+		window.stlng = "{{rest.longitude }}";
+		window.mylat = parseFloat(window.stlat);
+		window.mylng = parseFloat(window.stlng);
+		window.destaddr = "{{rest.full_address }}";
+		console.log(window.destaddr);
+		window.stations.push({name: "{{rest.name}}", longitude: "{{rest.longitude }}", latitude: "{{rest.latitude }}"});
+		
+
+		window.markers=[];
+		//function for set gas stations on Google map
+		function setmarker(station)
+		{
+			geocoder.geocode( { 'address': window.destaddr}, function(results, status) 
+			{
+    			if (status == google.maps.GeocoderStatus.OK) 
+    			{
+      				//map.setCenter(results[0].geometry.location);
+      				var marker = new google.maps.Marker(
+      				{
+          				//map: map,
+          				position: results[0].geometry.location
+      				});
+      				window.markers.push(marker);
+      				for (sk = 0;sk < window.stations.length; ++sk){
+      					if (window.stations[sk].address == station.address){
+      						window.newstat.push(window.stations[sk]);
+      						break;
+      					}
+      				}
+      				//console.log(marker.position.lat());
+      				var infowindow = new google.maps.InfoWindow({content:station.name});
+      				google.maps.event.addListener(marker, 'click', function() {infowindow.open(window.map,marker);});
+      				marker.setMap(window.map);
+    			} else 
+    				{
+      					alert('Geocode was not successful for the following reason 1: ' + status);
+    				}
+  			});
+		}
+
+		function showroute()
+		{	
+			
+			//display
+			var directionsService = new google.maps.DirectionsService();
+			var start = new google.maps.LatLng(current_lat, current_lng);
+    		var end = new google.maps.LatLng(window.mylat,window.mylng);
+
+    		var directionsDisplay = new google.maps.DirectionsRenderer();// also, constructor can get "DirectionsRendererOptions" object
+    		directionsDisplay.setMap(window.map); // map should be already initialized.
+
+    		var request = {
+        		origin : start,
+        		destination : end,
+        		travelMode : google.maps.TravelMode.DRIVING
+    		};
+    		directionsService.route(request, function(response, status) {
+        		if (status == google.maps.DirectionsStatus.OK) {
+            		directionsDisplay.setDirections(response);
+            		//console.log(response.routes[0].legs[0].distance.text);
+        		}
+
+    		});
+    		//console.log(distances);
+		}
+
+		// initialize map
+		function initialize()
+		{
+			var mapProp = 
+			{
+  				center:new google.maps.LatLng(window.mylat,window.mylng), //uiuc LatLng
+  				zoom:12,
+  				mapTypeId:google.maps.MapTypeId.ROADMAP
+  			};
+			window.map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+			find_stations();
+			showroute();
+			/*
+			var i;
+			for (i=0;i<stations.length;i++)
+			{
+				setmarker(stations[i]);
+			}
+			*/
+		}
+
+		
+		// Update the Google map for the user's inputted address
+		function find_stations()
+		{
+			var geocoder = new google.maps.Geocoder();    // instantiate a geocoder object
+			
+			// Get the user's inputted address
+			var address = "{{mycuraddr}}";
+			/*
+			var dest_address= document.getElementById( "destination_address" ).value;
+			*/
+			// Make asynchronous call to Google geocoding API
+			geocoder.geocode( { 'address': address }, function(results, status) {
+				var addr_type = "street_address";	// type of address inputted that was geocoded
+				if ( status == google.maps.GeocoderStatus.OK ) 
+				{
+					current_lat=results[0].geometry.location.lat();
+					current_lng=results[0].geometry.location.lng();
+					ShowLocation( results[0].geometry.location, address, addr_type );
+
+					//return zipcode in console
+					//results[0].address_components[7].long_name is current address zipcode
+					//should push all stations to array "stations"
+					geocoder.geocode({'latLng': results[0].geometry.location}, function(results, status) 
+						{ 
+							
+						    
+						});
+					 
+				}
+				else     
+					alert("Geocode was not successful for the following reason 2: " + status);        
+			});
+			/*
+			geocoder.geocode( { 'address': dest_address }, function(results, status) {
+				//var addr_type = results[0].types[0];	// type of address inputted that was geocoded
+				if ( status == google.maps.GeocoderStatus.OK ) 
+				{
+					destination_lat=results[0].geometry.location.lat();
+					destination_lng=results[0].geometry.location.lng();
+				}      
+			});
+			*/
+			for (i=0;i<window.stations.length;i++)
+				{
+					setmarker(window.stations[i]);
+				}
+			
+		}
+	
+		// Show the location (address) on the map.
+		function ShowLocation( latlng, address, addr_type )
+		{
+			// Center the map at the specified location
+			window.map.setCenter( latlng );
+		
+			// Set the zoom level according to the address level of detail the user specified
+			var zoom = 12;
+			switch ( addr_type )
+			{
+			case "administrative_area_level_1"	: zoom = 6; break;		// user specified a state
+			case "locality"						: zoom = 10; break;		// user specified a city/town
+			case "street_address"				: zoom = 15; break;		// user specified a street address
+			}
+			window.map.setZoom( zoom );
+		
+			// Place a Google Marker at the same location as the map center 
+			// When you hover over the marker, it will display the title
+			var marker = new google.maps.Marker( { 
+				position: latlng,     
+				map: window.map,      
+				title: address
+			});
+		
+			// Create an InfoWindow for the marker
+			var contentString = "" + address + "";	// HTML text to display in the InfoWindow
+			var infowindow = new google.maps.InfoWindow( { content: contentString } );
+		
+			// Set event to display the InfoWindow anchored to the marker when the marker is clicked.
+			google.maps.event.addListener( marker, 'click', function() { infowindow.open( window.map, marker ); });
+		}
+		function passdis(dis)
+		{
+			distances.push(dis/1609.34);
+			//console.log(distances);
+		}
+
+		function find_best_station()
+		{
+			var geocoder = new google.maps.Geocoder();    // instantiate a geocoder object
+			// Get the user's inputted address
+			var address = "{{addr}}";
+
+    		var closest = -1;
+    		
+			lat1=current_lat;
+			lng1=current_lng;
+
+    		for( i=0;i<window.markers.length; i++ ) 
+    		{  
+				var directionsService = new google.maps.DirectionsService();
+				var start = new google.maps.LatLng(current_lat, current_lng);
+    			var end = new google.maps.LatLng(window.markers[i].position.lat(), window.markers[i].position.lng());
+    			var request = 
+    			{
+        			origin : start,
+        			destination : end,
+        			travelMode : google.maps.TravelMode.DRIVING
+    			};
+    			directionsService.route(request, function(response, status) {
+        			if (status == google.maps.DirectionsStatus.OK) {
+            			//directionsDisplay.setDirections(response);
+            			//console.log(response.routes[0].legs[0].distance.text);
+            			//dis=response.routes[0].legs[0].distance.text;
+            			passdis(response.routes[0].legs[0].distance.value);
+        			}
+    			});
+			}
+			//console.log(distances);
+		}
+		
+
+		function atob()
+		{
+			var directionsService = new google.maps.DirectionsService();
+			var start = new google.maps.LatLng(current_lat, current_lng);
+			var end = new google.maps.LatLng(destination_lat, destination_lng);
+			var directionsDisplay = new google.maps.DirectionsRenderer();
+			directionsDisplay.setMap(window.map); 
+			var request = {
+        		origin : start,
+        		destination : end,
+        		travelMode : google.maps.TravelMode.DRIVING
+    		};
+    		console.log(start, end);
+    		directionsService.route(request, function(response, status) {
+        		if (status == google.maps.DirectionsStatus.OK) {
+            		directionsDisplay.setDirections(response);
+            		console.log(response.routes[0].legs[0].distance.text);
+        		}
+        		else 
+    				{
+      					alert('Geocode was not successful for the following reason 3: ' + status);
+    				}
+    		});
+
+		}
+
+		google.maps.event.addDomListener(window, 'load', initialize);
+
+		</script>
+	</head>
+
+	<body>
+		<h1>Restaurant Location Direction</h1>
+
+		<a href="{% url 'dm:searchquery' %}">back</a>
+		
+		<script type="text/javascript">
+			document.write("");
+		</script>
+
+		<div id="googleMap" style="width:800px;height:600px;"></div>
+		<div>
+			<button onclick="showroute()"> show route</button>
+		</div>
+		<div id="tablePrint"> </div>
+		
+	</body>
+</html>
